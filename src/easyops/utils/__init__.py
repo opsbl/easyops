@@ -1,0 +1,1 @@
+from .ns import NameService
