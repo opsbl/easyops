@@ -19,12 +19,17 @@ if sys.version_info.major > 2:
     kwargs.update({
         "encoding": "utf-8"
     })
+
 with open("README.rst", "r", **kwargs) as f:
     long_description = f.read()
 
 setup(
     name='easyops',
-    version='1.0.4',
+    setup_requires=['setuptools_scm'],
+    use_scm_version={
+        "root": "..",
+        "relative_to": __file__,
+    },
     author="boli",
     author_email="boli@easyops.cn",
     license="MIT License",
