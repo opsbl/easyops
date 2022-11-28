@@ -149,19 +149,19 @@ class CMDB(APP):
                                 json=body)
 
     def instance_update(self, object_id, instance_id, **body):
-        return self.put(self.apis.update_instance,
-                        url_params={
-                            "object_id": object_id,
-                            "instance_id": instance_id,
-                        },
-                        json=body)
+        return self.client.put(self.apis.update_instance,
+                               url_params={
+                                   "object_id": object_id,
+                                   "instance_id": instance_id,
+                               },
+                               json=body)
 
     def instance_delete(self, object_id, instance_id):
-        return self.delete(self.apis.delete_instance,
-                           url_params={
-                               "object_id": object_id,
-                               "instance_id": instance_id,
-                           })
+        return self.client.delete(self.apis.delete_instance,
+                                  url_params={
+                                      "object_id": object_id,
+                                      "instance_id": instance_id,
+                                  })
 
     def instance_detail(self, object_id, instance_id):
         return self.client.get(self.paths.instance_detail, url_params={
