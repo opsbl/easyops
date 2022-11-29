@@ -1,5 +1,6 @@
 # coding: utf-8
 
+import datetime
 from ._base import BaseAppPaths, Path, APP
 
 
@@ -9,6 +10,8 @@ class AppConfigPaths(BaseAppPaths):
     appconfig_list = Path("/api/v1/appconfig", desc="Get application configuration list")
     appconfig_keys = Path("/api/v1/appconfig/keys", desc="Get configuration keys")
     appconfig_values = Path("/api/v1/appconfig/values", desc="Get configuration values")
+    publish_appconfig = Path("/api/v1/appconfig/values", method="POST", desc="Publishing environment configuration")
+    modify_appconfig_values = Path("/api/v1/appconfig/values", method="PATCH", desc="Modifying the Configuration value")
     appconfig_detail = Path("/api/v1/appconfig/detail", desc="Get the Detail of the specified level configuration")
     appconfig_summary = Path("/api/v1/appconfig/summary", desc="Get an overview of app configuration", method="POST")
     appconfig_publish = Path(appconfig_list.path, method="POST", desc="Publishing environment configuration")
@@ -58,6 +61,7 @@ class AppConfig(APP):
 
     """
     paths = AppConfigPaths("appconfig")
+    name_service = "logic.appconfig"
 
     def get_appconfig_list(self, app_id, **query):
         """
@@ -152,3 +156,31 @@ class AppConfig(APP):
             versionId=version_id,
             **body
         ))
+
+    def modify_appconfig_values(self, action, app_id, env, keys):
+        return self.client.patch(self.paths.modify_appconfig_values, json={
+            "action": action,
+            "appId": app_id,
+            "env": env,
+            "keys": keys
+        })
+
+    def publish_appconfig(self, app_id, env, release=None, message="", **kwargs):
+        """
+        publish appconfig
+        :param app_id:
+        :param env:
+        :param release:
+        :param message:
+        :return:
+        """
+
+        release = release or datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        body = {
+            "appId": app_id,
+            "env": env,
+            "message": message,
+            "release": release,
+        }
+        body.update(kwargs)
+        return self.client.post(self.paths.publish_appconfig, json=body)

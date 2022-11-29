@@ -23,6 +23,9 @@ class ArtifactPaths(BaseAppPaths):
     version_list = Path("/version/list", method="GET", desc="version list")
     version_detail = Path("/version/version/{version_id}", method="GET", desc="version detail")
 
+    packages_bind = Path("/api/artifact/v1/apps/{app_id}/packages/{package_id}/bind", method="POST",
+                         desc="Quickly bind packages and configuration packages")
+
 
 class PackageVersion(object):
     ENV_DEVELOP = 1
@@ -161,6 +164,18 @@ class Artifact(APP):
 
     host = "deploy.easyops-only.com"
     paths = ArtifactPaths()
+    name_service = "logic.artifact"
+
+    def fast_bind_packages(self, app_id, package_id, **options):
+        """
+        为APP快速绑定制品包
+        :param app_id:
+        :param package_id:
+        :param options:
+        :return:
+        """
+        return self.client.post(self.paths.packages_bind.fill_params(app_id=app_id, package_id=package_id),
+                                json=options)
 
     def search_packages(self, name=None, exact=False, creator=None, page=1, page_size=20, order=None, **query):
         """

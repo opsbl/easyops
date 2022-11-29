@@ -122,6 +122,9 @@ class APP(object):
     host = ""  # type: str  # for org universal_client
     paths = BaseAppPaths("")  # type: BaseAppPaths
 
+    # Name service
+    name_service = ""
+
     def __init__(self, client, app_name=None, host=None):
         self.paths = copy.deepcopy(self.paths)
         self.client = client

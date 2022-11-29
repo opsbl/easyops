@@ -47,6 +47,30 @@ class ToolPaths(BaseAppPaths):
     result_list = Path("/tools/result/list", method="GET", desc="Get Tool execution results in bulk")
     result = Path("/tools/execution/{exec_id}", method="GET", desc="Gets the results of tool execution")
 
+    create_flow = Path("/flows", method="POST", desc="Create a Process")
+    get_flow_list = Path("/flows", method="GET", desc="Get the process list")
+    delete_flow = Path("/flows/{flow_id}", method="DELETE", desc="Delete a Process")
+    get_flow = Path("/flows/{flow_id}", method="GET", desc="Get process details")
+    update_flow = Path("/flows/{flow_id}", method="PUT", desc="Update flow")
+    flow_categories = Path("/flow_categories", method="GET", desc="Query Process Classification")
+    flow_categories_v2 = Path("/flow/v2/categories", method="GET", desc="Query Process Classification")
+    get_flow_versions = Path("/flows/{flow_id}/versions", method="GET", desc="Gets the process version list")
+    flow_pre_check = Path("/flows/{flow_id}/preCheck", method="GET", desc="Check the process before execution")
+
+    execution_flow = Path("/flows/execution", method="POST", desc="execution flow")
+    flow_exec_confirm = Path("/flows/execution/confirm/{task_id}/{step_id}", method="POST", desc="Perform confirmation")
+
+    get_flow_exec_results = Path("/flows/execution/{task_id}", method="GET", desc="get exec results")
+    get_flow_step_results = Path("/flows/step/execution/{task_id}/{step_id}", method="GET",
+                                 desc="Gets the results of the process step execution")
+    get_flow_result_list = Path("/flows/result/list", desc="List of process execution results")
+
+    flow_retry_step = Path("/flows/execution/retry/{task_id}/{step_id}", method="POST")
+    flow_skip_step = Path("/flows/execution/skip/{task_id}/{step_id}", method="POST")
+    modify_flow_status = Path("/flows/execution/status/{task_id}", method="PUT")
+    modify_flow_step_status = Path("/flows/execution/stepStatus/{task_id}/{step_id}", method="PUT",
+                                   desc="Change step state and retry or skip")
+
     def __init__(self, app_name="tool"):
         super(ToolPaths, self).__init__(app_name, relative=False)
 
@@ -54,6 +78,7 @@ class ToolPaths(BaseAppPaths):
 class Tool(APP):
     host = "tool.easyops-only.com"
     paths = ToolPaths("tool")
+    name_service = "logic.tool"
 
     def tools(self, page=1, page_size=10, category=None, name=None, permissions="ignoreWhiteList", plugin=False,
               type=None, view_whitelist=None, **kwargs):
@@ -122,3 +147,9 @@ class Tool(APP):
 
     def detail(self, tool_id):
         return self.client.get(self.paths.detail, url_params={"tool_id": tool_id})
+
+    def get_flow_detail(self, flow_id):
+        return self.client.get(self.paths.get_flow.fill_params(flow_id=flow_id))
+
+    def create_flow(self, **options):
+        return self.client.post(self.paths.create_flow, json=options)

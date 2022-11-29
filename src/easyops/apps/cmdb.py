@@ -114,6 +114,8 @@ class CMDB(APP):
     # cmdb_resource.easyops-only.com
     host = "cmdb_resource.easyops-only.com"
 
+    name_service = "logic.cmdb.service"
+
     def instance_search(self, object_id, **body):
         return self.client.post(self.paths.instance_search,
                                 url_params={
@@ -149,7 +151,7 @@ class CMDB(APP):
                                 json=body)
 
     def instance_update(self, object_id, instance_id, **body):
-        return self.client.put(self.apis.update_instance,
+        return self.client.put(self.paths.instance_update,
                                url_params={
                                    "object_id": object_id,
                                    "instance_id": instance_id,
@@ -157,7 +159,7 @@ class CMDB(APP):
                                json=body)
 
     def instance_delete(self, object_id, instance_id):
-        return self.client.delete(self.apis.delete_instance,
+        return self.client.delete(self.paths.instance_delete,
                                   url_params={
                                       "object_id": object_id,
                                       "instance_id": instance_id,

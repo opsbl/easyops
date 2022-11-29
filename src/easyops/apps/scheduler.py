@@ -14,6 +14,7 @@ class SchedulerPaths(BaseAppPaths):
 
 class Scheduler(APP):
     paths = SchedulerPaths()
+    name_service = "logic.scheduler"
 
     def create_task(self, options):
         """

@@ -7,6 +7,7 @@ class PluginApis(BaseAppPaths):
 
 class Plugin(APP):
     paths = PluginApis("plugin")
+    name_service = "logic.plugin"
 
     def execute(self, name, options=None):
         """

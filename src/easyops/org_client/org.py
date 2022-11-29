@@ -2,6 +2,7 @@
 import sys
 import copy
 import requests
+from ..utils import NameService
 from ..exceptions import ValidError
 from ..helper import get_application_by_name
 
@@ -26,6 +27,28 @@ class OrgClient(object):
         }
         if self._host:
             self._headers["Host"] = self._host
+
+    @classmethod
+    def get_client_from_ns(cls, ns, user, org, schema="http", *args, **kwargs):
+        """
+        instantiate OrgClient from the name service
+        :param ns:
+        :param user:
+        :param org:
+        :param schema:
+        :return:
+        """
+        sid, host, port = NameService().get_service_by_name("tool", ns)
+        assert sid >= 0, "description Failed to obtain the name service"
+
+        return cls("%s://%s:%d" % (schema, host, port), org=org, user=user, *args, **kwargs)
+
+    @classmethod
+    def get_client_from_ns_and_app(cls, app, user, org, schema="http", app_name=None, host=None, *args, **kwargs):
+        ns = app.name_service
+        assert ns, "the name service is empty"
+        client = cls.get_client_from_ns(ns, user, org, schema, *args, **kwargs)
+        return app(client, app_name=app_name, host=host)
 
     @property
     def server(self):

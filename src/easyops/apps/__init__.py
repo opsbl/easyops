@@ -1,5 +1,6 @@
 from .cmdb import CMDB
 from .tool import Tool
+from .easy_flow import EasyFlow
 from .easy_plugin import Plugin
 from .appconfig import AppConfig
 from .scheduler import Scheduler
@@ -18,6 +19,7 @@ applications = {
     "plugin": Plugin,
     "easy_plugin": Plugin,
     "scheduler": Scheduler,
+    "easy_flow": EasyFlow,
 }
 
 __all__ = [
@@ -32,4 +34,5 @@ __all__ = [
     "CMDB",
     "applications",
     "Scheduler",
+    "EasyFlow",
 ]
