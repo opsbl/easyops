@@ -24,8 +24,8 @@ with open("README.rst", "r", **kwargs) as f:
     long_description = f.read()
 
 setup(
-    name='easyops',
-    setup_requires=['setuptools_scm'],
+    name="easyops",
+    setup_requires=["setuptools_scm"],
     use_scm_version={
         "root": "..",
         "relative_to": __file__,
@@ -45,7 +45,24 @@ setup(
     zip_safe=False,
     # Setting dependency Packages
     install_requires=[
-        'PyYAML>=5.4.1',
-        'requests>=2.27.1'
+        "PyYAML>=3.13",
+        "requests>=2.10.0"
+    ],
+    classifiers=[
+        "Intended Audience :: Developers",
+        "Operating System :: OS Independent",
+        "Natural Language :: Chinese (Simplified)",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Topic :: Software Development :: Libraries"
     ],
 )
