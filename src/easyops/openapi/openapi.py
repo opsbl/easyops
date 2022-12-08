@@ -4,7 +4,8 @@ import time
 import hmac
 import hashlib
 import requests
-
+import warnings
+from ..common import logger
 from ..exceptions import ValidError
 from ..helper import get_application_by_name
 
@@ -19,12 +20,13 @@ if sys.version_info.major == 2:
 
 
 class OpenApi(object):
-    def __init__(self, server, access_key, secret_key, debug=False, valid=True, skip_ssl=False):
+    logger = logger
+
+    def __init__(self, server, access_key, secret_key, valid=True, skip_ssl=False, **kwargs):
         """
         :param server: platform address, e.g. http[s]://192.168.234.143
         :param access_key: API Gateway access key
         :param secret_key: API Gateway secret key
-        :param debug: debug mode
         :param valid: Verify that the return code is equal to 0, otherwise a ValidError will be thrown
         :param skip_ssl: Ignore SSL certificate errors
         """
@@ -35,28 +37,16 @@ class OpenApi(object):
             "Host": "openapi.easyops-only.com",
             "User-Agent": "OpenApi/Client"
         }
-        self._debug = debug
+        self._kwargs = kwargs
+        if "debug" in self._kwargs:
+            warnings.warn("The 'debug' parameter is deprecated, "
+                          "use 'easyops.set_debug()' instead", DeprecationWarning, 2)
         self._valid = valid
         self._skip_ssl = skip_ssl
 
     @property
     def server(self):
         return self._base_url
-
-    def debug(self, msg, *args, **kwargs):
-        """
-        日志输出
-        :param msg:
-        :param args:
-        :param kwargs:
-        :return:
-        """
-        if not self._debug:
-            return
-        msg = str(msg)
-        end = kwargs.pop("end_", "\n")
-        sys.stderr.write(msg.format(*args, **kwargs) + end)
-        sys.stderr.flush()
 
     def get_application(self, name, new_name=None):
         """
@@ -101,11 +91,11 @@ class OpenApi(object):
             content_md5,
             timestamp,
             self._access_key,
-        ])).encode()
+        ]))
 
-        signature = hmac.new(self._secret_key.encode(), raw_string, hashlib.sha1).hexdigest()
-        self.debug("Signature original string: \n------Start------\n%s\n------End------" % raw_string)
-        self.debug("Signature result: %s" % signature)
+        signature = hmac.new(self._secret_key.encode(), raw_string.encode("utf-8"), hashlib.sha1).hexdigest()
+        self.logger.debug("Signature original string: \n------Start------\n%s\n------End------", raw_string)
+        self.logger.debug("Signature result: %s", signature)
 
         request.prepare_url(request.url, {
             "accesskey": self._access_key,
@@ -157,16 +147,19 @@ class OpenApi(object):
                 'allow_redirects': kwargs.pop("allow_redirects", True),
             }
             send_kwargs.update(settings)
-            self.debug("Request: \n"
-                       "\tURL: {}\n"
-                       "\tMethod: {}\n"
-                       "\tHeaders: {}\n"
-                       "\tBody: {}\n", prep.url, prep.method, prep.headers, prep.body)
+            self.logger.debug("%s Request: \n"
+                              "\tURL: %s\n"
+                              "\tMethod: %s\n"
+                              "\tHeaders: %s\n"
+                              "\tBody: %s\n", self.__class__.__name__, prep.url, prep.method, prep.headers, prep.body)
             resp = session.send(prep, **send_kwargs)
-            self.debug("Response: \n"
-                       "\tHttpStatus: {}\n"
-                       "\tHeaders: {}\n"
-                       "\tBody: {}\n", resp.status_code, resp.headers, resp if response else resp.text)
+            self.logger.debug("%s Response: \n"
+                              "\tHttpStatus: %s\n"
+                              "\tHeaders: %s\n"
+                              "\tBody: %s\n", self.__class__.__name__,
+                              resp.status_code,
+                              resp.headers,
+                              resp if response else resp.text)
             if response:
                 if self._valid and (resp.status_code >= 300 or resp.status_code < 200):
                     raise ValidError(code=-1, message="Response is not OK", data=resp)
