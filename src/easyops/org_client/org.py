@@ -2,6 +2,8 @@
 import sys
 import copy
 import requests
+import warnings
+from ..common import logger
 from ..utils import NameService
 from ..exceptions import ValidError
 from ..helper import get_application_by_name
@@ -12,12 +14,17 @@ if sys.version_info.major == 2:
 
 
 class OrgClient(object):
-    def __init__(self, server, org, user, host="localhost", debug=False, valid=True, skip_ssl=False):
+    logger = logger
+
+    def __init__(self, server, org, user, host="localhost", valid=True, skip_ssl=False, **kwargs):
         self._base_url = server.rstrip("/")
         self._host = host
         self._org = org
         self._user = user
-        self._debug = debug
+        self._kwargs = kwargs
+        if "debug" in kwargs:
+            warnings.warn("The 'debug' parameter is deprecated, "
+                          "use 'easyops.set_debug()' instead", DeprecationWarning, 2)
         self._valid = valid
         self._skip_ssl = skip_ssl
         self._headers = {
@@ -81,29 +88,13 @@ class OrgClient(object):
         org = org or self._org
 
         default = {
-            "debug": self._debug,
             "valid": self._valid,
             "skip_ssl": self._skip_ssl,
         }
+        default.update(self._kwargs)
         default.update(ops)
         client = self.__class__(server, host, org, user, **default)
         return app(client)
-
-    def debug(self, msg, *args, **kwargs):
-        """
-        日志输出
-        :param msg:
-        :param args:
-        :param kwargs:
-        :return:
-        """
-
-        if not self._debug:
-            return
-        msg = str(msg)
-        end = kwargs.pop("end_", "\n")
-        sys.stderr.write(msg.format(*args, **kwargs) + end)
-        sys.stderr.flush()
 
     @property
     def host(self):
@@ -171,16 +162,18 @@ class OrgClient(object):
                 'allow_redirects': kwargs.pop("allow_redirects", True),
             }
             send_kwargs.update(settings)
-            self.debug("Request: \n"
-                       "\tURL: {}\n"
-                       "\tMethod: {}\n"
-                       "\tHeaders: {}\n"
-                       "\tBody: {}\n", prep.url, prep.method, prep.headers, prep.body)
+            self.logger.debug("%s Request: \n"
+                              "\tURL: %s\n"
+                              "\tMethod: %s\n"
+                              "\tHeaders: %s\n"
+                              "\tBody: %s\n", self.__class__.__name__, prep.url, prep.method, prep.headers, prep.body)
             resp = session.send(prep, **send_kwargs)
-            self.debug("Response: \n"
-                       "\tHttpStatus: {}\n"
-                       "\tHeaders: {}\n"
-                       "\tBody: {}\n", resp.status_code, resp.headers, resp if response else resp.text)
+            self.logger.debug("%s Response: \n"
+                              "\tHttpStatus: %s\n"
+                              "\tHeaders: %s\n"
+                              "\tBody: %s\n", self.__class__.__name__,
+                              resp.status_code, resp.headers,
+                              resp if response else resp.text)
 
             if response:
                 if self._valid and (resp.status_code >= 300 or resp.status_code < 200):
