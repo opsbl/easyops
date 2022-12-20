@@ -116,6 +116,18 @@ class CMDB(APP):
 
     name_service = "logic.cmdb.service"
 
+    S_V1 = 1
+    S_V2 = 2
+    S_V3 = 3
+
+    def __init__(self, *args, **kwargs):
+        super(CMDB, self).__init__(*args, **kwargs)
+        self._search_apis = {
+            self.S_V1: self.paths.instance_search,
+            self.S_V2: self.paths.instance_search_v2,
+            self.S_V3: self.paths.instance_search_v3
+        }
+
     def instance_search(self, object_id, **body):
         return self.client.post(self.paths.instance_search,
                                 url_params={
@@ -130,11 +142,43 @@ class CMDB(APP):
                                 },
                                 json=body)
 
-    def instance_search_first(self, object_id, **body):
-        lst = self.instance_search(object_id, **body)["list"]
+    def instance_search_first(self, object_id, version=None, **body):
+        api = self._search_apis.get(version or self.S_V1)
+        if api is None:
+            raise ValueError("The interface version is unknown.")
+        lst = self.client.post(path=api.fill_params(object_id=object_id), json=body)["list"]
         if len(lst) > 0:
             return lst[0]
         return None
+
+    def get_all_instances(self, object_id, version=None, **options):  # type: ( str,int, any) -> any
+        """
+        Gets all instances of the model
+        :param object_id:
+        :param version:
+        :param options:
+        :return:
+        """
+        api = self._search_apis.get(version or self.S_V1)
+        if api is None:
+            raise ValueError("The interface version is unknown.")
+
+        body = options.copy()
+        body["page"] = 1
+        if "page_size" not in body:
+            body["page_size"] = 1000
+
+        data = self.client.post(path=api.fill_params(object_id=object_id), json=body)
+        counter = 0
+        for instance in data["list"]:
+            counter += 1
+            yield instance
+        while counter < data["total"]:
+            body["page"] += 1
+            data = self.client.post(path=api.fill_params(object_id=object_id), json=body)
+            for instance in data["list"]:
+                counter += 1
+                yield instance
 
     def instance_import(self, object_id, **body):
         return self.client.post(self.paths.instance_import,
