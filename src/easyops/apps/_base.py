@@ -154,21 +154,11 @@ class APP(object):
         """
         return self.client.call(method=path.method, path=path, *args, **kwargs)
 
-    def generate_openapi_configs(self, service_name, host="", app_name=None,
+    @classmethod
+    def generate_openapi_configs(cls, name_service=None, host="", app_name=None,
                                  default_frequency=None,
                                  custom_frequency=None,
                                  app_route=False):
-        host = host or self.host
-        app_name = app_name or self.app_name
-        return self.paths.generate_openapi_configs(service_name, host, app_name,
-                                                   default_frequency, custom_frequency,
-                                                   app_route)
-
-    @classmethod
-    def generate_openapi_configs_(cls, name_service=None, host="", app_name=None,
-                                  default_frequency=None,
-                                  custom_frequency=None,
-                                  app_route=False):
         host = host or cls.host
         app_name = app_name or cls.paths.app_name
         name_service = name_service or cls.name_service
