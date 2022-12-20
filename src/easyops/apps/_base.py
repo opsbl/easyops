@@ -3,6 +3,7 @@ import copy
 import yaml
 from ..helper import Path
 from ..openapi import OpenApi
+from ..helper.types import PY2
 from ..org_client import OrgClient
 
 try:
@@ -93,7 +94,11 @@ class BaseAppPaths(object):
             data = {"app_route": [data]}
         else:
             data = [data]
-        return yaml.safe_dump(data, default_flow_style=False, sort_keys=True, explicit_start=True)
+
+        kwargs = {"default_flow_style": False, "explicit_start": True}
+        if not PY2:
+            kwargs["sort_keys"] = True
+        return yaml.safe_dump(data, **kwargs)
 
     @classmethod
     def extend_paths(cls, paths):
@@ -158,6 +163,18 @@ class APP(object):
         return self.paths.generate_openapi_configs(service_name, host, app_name,
                                                    default_frequency, custom_frequency,
                                                    app_route)
+
+    @classmethod
+    def generate_openapi_configs_(cls, name_service=None, host="", app_name=None,
+                                  default_frequency=None,
+                                  custom_frequency=None,
+                                  app_route=False):
+        host = host or cls.host
+        app_name = app_name or cls.paths.app_name
+        name_service = name_service or cls.name_service
+        return cls.paths.generate_openapi_configs(name_service, host, app_name,
+                                                  default_frequency, custom_frequency,
+                                                  app_route)
 
     def __getattr__(self, name):
         if hasattr(self.paths, name) and isinstance(getattr(self.paths, name), Path):

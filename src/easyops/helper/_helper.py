@@ -1,9 +1,8 @@
 # coding: utf-8
 import importlib
 
-from io import BytesIO
 from . import _apps as apps
-
+from ..helper.types import PY2
 import yaml
 
 try:
@@ -136,10 +135,11 @@ class Path(object):
         frequency = self.frequency if frequency is None else int(frequency)
         info = self.info
         info.update(frequency=frequency)
-        with BytesIO() as buf:
-            buf.write(b"# {} \n".format(self.desc.encode("utf-8")))
-            yaml.dump([info], buf, Dumper, default_flow_style=False)
-            return buf.getvalue()
+        desc = "# {} \n".format(self.desc)
+        kwargs = {"default_flow_style": False}
+        if not PY2:
+            kwargs["sort_keys"] = True
+        return desc + yaml.safe_dump([info], **kwargs)
 
 
 class BaseUrls(object):
